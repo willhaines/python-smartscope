@@ -33,6 +33,22 @@ class Generator:
     def __init__(self, scope):
         self.scope = scope
 
+    def stop(self):
+        self.scope.device.GeneratorToDigitalEnabled = 0
+        self.scope.device.GeneratorToAnalogEnabled = 0
+
+    def start_analog(self):
+        self.scope.device.GeneratorToAnalogEnabled = 1
+
+    def start_digital(self):
+        self.scope.device.GeneratorToDigitalEnabled = 1
+
+    def set_wave(self, points, period=1e-7):
+        self.scope.device.GeneratorSamplePeriod = period
+        self.scope.device.GeneratorDataDouble = points
+        self.scope.commit_settings()
+
+
 
 class SmartScope:
     def __init__(self, device_interface=DeviceInterface()):
@@ -92,12 +108,17 @@ class SmartScope:
     def use_main_device(self):
         self._use_device(self.device_interface.device_manager.MainDevice)
 
+    def use_physical_device(self):
+        self.device_interface.wait_for_real_device()
+        self._use_device(self.device_interface.device_manager.MainDevice)
+
     def _use_device(self, device):
         self.device = device
         self.chA = Channel(self, self.AnalogChannel.ChA.value)
         self.chB = Channel(self, self.AnalogChannel.ChB.value)
         self.generator = Generator(self)
 
+        self.generator.stop()
         self.stop()
         self.device.DataSourceScope.Start()
 

@@ -1,4 +1,5 @@
 import clr
+from time import sleep
 
 class DeviceInterface:
     Devices = None
@@ -16,4 +17,11 @@ class DeviceInterface:
 
         self.device_manager = self.Devices.DeviceManager()
         self.device_manager.Start()
+
+    def __del__(self):
+        self.device_manager.Stop()
+
+    def wait_for_real_device(self):
+        while not self.device_manager.SmartScopeConnected:
+            sleep(0.1)
 
